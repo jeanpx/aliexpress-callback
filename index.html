@@ -1,0 +1,38 @@
+<!doctype html>
+<!--
+  Callback URL de la app Drop Shipping en AliExpress (publicada en GitHub Pages, gratis y con https).
+  Hace lo mismo que el reenvío de handleCallback en server.js: lee el origen guardado en `state`
+  y, si es el buscador local, le pasa code y state. El local comprueba la firma y canjea el código.
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Conectando AliExpress</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:560px;margin:60px auto;padding:0 16px}code{word-break:break-all}</style>
+</head>
+<body>
+<h1>Conectando AliExpress…</h1>
+<p id="msg">Volviendo a tu buscador local.</p>
+<script>
+  const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+  const params = new URLSearchParams(location.search);
+  const code = params.get('code');
+  const state = params.get('state') || '';
+  let origin = '';
+  try {
+    const b64 = state.split('.')[0].replace(/-/g, '+').replace(/_/g, '/');
+    origin = new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
+  } catch {}
+  const msg = document.getElementById('msg');
+  if (!code) {
+    msg.textContent = 'AliExpress no devolvió ningún código de autorización.';
+  } else if (!LOCAL_ORIGIN.test(origin)) {
+    msg.textContent = 'Esta autorización no se inició desde el buscador local. Vuelve a pulsar «Conectar AliExpress».';
+  } else {
+    location.replace(`${origin}/api/aliexpress/callback?${new URLSearchParams({ code, state })}`);
+  }
+</script>
+</body>
+</html>
